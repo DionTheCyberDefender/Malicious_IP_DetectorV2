@@ -6,3 +6,6 @@ Once the user receives the output from the desired tool, they can then determine
 AbuseIPDB API Documentation: https://docs.abuseipdb.com/?python#check-endpoint
 
 VirusTotal API Documentation: https://docs.virustotal.com/reference/overview
+
+Disclaimer:
+The scripts provided here are for educational purposes only. Please use them responsibly and at your own risk. I am not responsible for your actions.
