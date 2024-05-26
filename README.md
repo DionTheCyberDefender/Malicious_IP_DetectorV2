@@ -4,4 +4,5 @@ An upgraded version that serves a purpose of pulling IP data from the user's inp
 Once the user receives the output from the desired tool, they can then determine if the IP depicts any danger or if additional reseach is needed to assist with their decision.
 
 AbuseIPDB API Documentation: https://docs.abuseipdb.com/?python#check-endpoint
+
 VirusTotal API Documentation: https://docs.virustotal.com/reference/overview
