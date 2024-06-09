@@ -1,37 +1,24 @@
-#Malicious_IP_DetectorV2.py
-#Malicious IP Detector V2
+#! /usr/bin/env python3
 
+#Author: DionTheCyberDefender 
+#DateOfCreation 5/25/2024
 #Purpose: To receive the user's input of a valid IP address and search the outcome via the user's choice of AbuseIPDB or VirusTotal.
 #This will search an IP's Malicious Score, attributes, etc.
 
 import requests
 import json
+import ipaddress
+import sys
+import argparse
 
-#1 Ask user for the IP in question and remove Whitespace from str
-ip_in_question = input("What is the IP in question? ").strip()
-allowed_chars = "123456789."
-
-#Convert the string to a float using float() and verify IP is in valid format (xxx.xxx.xxx.xxx)
-try:
-    float(ip_in_question)
-    #If conversion is correct, check for valid IP (check for 3 dots)
-    if ip_in_question.count(".") == 3:
-        print("Thanks for providing the IP: ", ip_in_question)
-    else:
-        print("Error: Invalid IP format. Please Try Again")
-        print("Enter a valid IP (Example: xxx.xxx.xxx.xxx)")
-except ValueError:
-    print("Thanks for providing the IP: ", ip_in_question)
-    
-#User must choose which tool to search the inputted IP on
-tool_in_question = input('Now which tool would you like to use for your investigation? (Please select either "1" for AbuseIPDB or "2" for VirusTotal) ').strip()
-
-#Defining the api-endpoint options for Version 2 of the Malicious IP Detector.
+AbuseIPDB_API_Key = ''
 abuseipdb_url = 'https://api.abuseipdb.com/api/v2/check'
-virustotal_url = 'https://www.virustotal.com/api/v3/ip_addresses/{ip_in_question}'
 
-#Define API URLs and Headers Based On User's Input
-if tool_in_question == '1': 
+VirusTotal_API_Key = ''
+virustotal_url = 'https://www.virustotal.com/api/v3/ip_addresses'
+
+
+def test_with_abuseIPDB(ip_in_question):
     url = abuseipdb_url
     querystring = {
     'ipAddress': ip_in_question,
@@ -39,31 +26,59 @@ if tool_in_question == '1':
     }
     headers = {
         'Accept': 'application/json',
-        'Key': 'Your_AbuseIPDB_API_Key'
+        'Key': AbuseIPDB_API_Key
     }
-    
-    response = requests.request(method='GET', url=url, headers=headers, params=querystring)
+
+    try:
+        response = requests.request(method='GET', url=url, headers=headers, params=querystring)
+    except requests.exceptions.RequestException as e:
+        raise SystemExit(e)
     decodedResponse = json.loads(response.text)
     print(json.dumps(decodedResponse, sort_keys=True, indent=4))
-    
-    
-elif tool_in_question == '2': 
-    url = f'https://www.virustotal.com/api/v3/ip_addresses/{ip_in_question}'
+
+def test_with_virusTotal(ip_in_question):
+    url = f'{virustotal_url}/{ip_in_question}'
     headers = {
         'Accept': 'application/json',
-        'X-Apikey': 'Your_VirusTotal_API_Key'
+        'X-Apikey': VirusTotal_API_Key
     }
 
-else:
-    print('Error: Invalid Selection. Please be sure to select either "1" or "2"')
-    exit() 
+    try:
+        response = requests.get(url=url, headers=headers)
+    except requests.exceptions.RequestException as e:
+        raise SystemExit(e)
+    print(response.text)
+    results = input('Please Review the above results; Press "Enter" when done: ')
+    print(results)
 
-response = requests.get(url=url, headers=headers)
+def main():
+    
+    #define some arguments with help function
+    parser = argparse.ArgumentParser(
+        description='test', formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument(dest="ip_in_question",help="what IP would you like to check today?")
+    parser.add_argument('-t','--tool', choices=['a', 'b'], default='a',
+                        help=('which tool would you like to check your ip against?\n'
+                              ' a = AbuseIPDB (Default)\n'
+                              ' b = VirusTotal')) # can be added to if/when needed
 
-print(response.text)
+    args = parser.parse_args()
 
-results = input('Please Review the above results; Press "Enter" when done: ')
-print(results)
+    ip_in_question = args.ip_in_question
+    tool_in_question = args.tool
+    
+    try:
+        # ipaddress can validate ip address natively
+        ipaddress.ip_address(ip_in_question)
+        print("Thanks for providing the IP: ", ip_in_question)
+    except ValueError as e:
+        print(e)
+        sys.exit(1)
 
-#Author: DionTheCyberDefender 
-#DateOfCreation 5/25/2024
+    if args.tool == 'a':
+        test_with_abuseIPDB(ip_in_question)
+    elif args.tool == 'b':
+        test_with_virusTotal(ip_in_question)
+
+if __name__ == '__main__':
+    main()
